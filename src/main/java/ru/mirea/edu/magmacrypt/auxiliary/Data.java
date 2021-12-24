@@ -1,4 +1,4 @@
-package ru.mirea.edu.magmacrypt.aux;
+package ru.mirea.edu.magmacrypt.auxiliary;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;

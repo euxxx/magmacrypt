@@ -1,4 +1,4 @@
-package ru.mirea.edu.magmacrypt.aux;
+package ru.mirea.edu.magmacrypt.auxiliary;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

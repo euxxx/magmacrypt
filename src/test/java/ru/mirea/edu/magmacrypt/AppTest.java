@@ -6,10 +6,10 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import ru.mirea.edu.magmacrypt.aux.KeyGen;
+import ru.mirea.edu.magmacrypt.auxiliary.Data;
+import ru.mirea.edu.magmacrypt.auxiliary.KeyGen;
 import ru.mirea.edu.magmacrypt.cipher.Decryptor;
 import ru.mirea.edu.magmacrypt.cipher.Encryptor;
-import ru.mirea.edu.magmacrypt.aux.Data;
 
 import static org.junit.Assert.assertTrue;
 

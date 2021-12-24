@@ -1,11 +1,10 @@
 package ru.mirea.edu.magmacrypt;
 
 import ru.mirea.edu.magmacrypt.cipher.Encryptor;
+import ru.mirea.edu.magmacrypt.auxiliary.Data;
+import ru.mirea.edu.magmacrypt.auxiliary.KeyGen;
+import ru.mirea.edu.magmacrypt.auxiliary.Payload;
 import ru.mirea.edu.magmacrypt.cipher.Decryptor;
-
-import ru.mirea.edu.magmacrypt.aux.Data;
-import ru.mirea.edu.magmacrypt.aux.KeyGen;
-import ru.mirea.edu.magmacrypt.aux.Payload;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
