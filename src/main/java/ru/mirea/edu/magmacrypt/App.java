@@ -61,26 +61,28 @@ public class App {
                     "Specify application operating mode: -e to encrypt or -d to decrypt data!");
         }
 
+        String outputPath = "";
+
         switch (args[0]) {
-            case "-e" -> {
+            case ("-e"):
                 System.out.print("Specify path to data: ");
                 String sourcePath = scanner.nextLine();
-                // scanner.close();
                 if (Data.checkIfPathNonExists(sourcePath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified file does not exist!");
                 }
 
                 System.out.print("Where place encrypted data: ");
-                String outputPath = scanner.nextLine();
+                outputPath = scanner.nextLine();
                 if (Data.checkIfPathNonExists(outputPath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified path does not exist!");
                 }
 
                 encrypt(sourcePath, outputPath);
-            }
-            case "-d" -> {
+                break;
+
+            case ("-d"):
                 System.out.print("Specify path to encrypted file: ");
                 String encryptedPath = scanner.nextLine();
                 if (Data.checkIfPathNonExists(encryptedPath)) {
@@ -97,15 +99,19 @@ public class App {
                 }
 
                 System.out.print("Where place decrypted data: ");
-                String outputPath = scanner.nextLine();
+                outputPath = scanner.nextLine();
                 if (Data.checkIfPathNonExists(outputPath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified path does not exist!");
                 }
 
                 decrypt(encryptedPath, keyPath, outputPath);
-            }
-            default -> System.out.println("Run with -e arg to encrypt or -d to decrypt!");
+                break;
+
+            default:
+                System.out.println("Run with -e arg to encrypt or -d to decrypt!");
+                break;
+            
         }
 
         scanner.close();
