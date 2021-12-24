@@ -1,0 +1,1 @@
+mvn clean && mvn package -f "/home/magnus/Sources/Studying/magmacrypt/pom.xml"
