@@ -62,27 +62,25 @@ public class App {
         }
 
         String outputPath = "";
+        
+        if (args[0].equalsIgnoreCase("-e")) {
+            System.out.print("Specify path to data: ");
+            String sourcePath = scanner.nextLine();
+            if (Data.checkIfPathNonExists(sourcePath)) {
+                scanner.close();
+                throw new FileNotFoundException("Specified file does not exist!");
+            }
 
-        switch (args[0]) {
-            case ("-e"):
-                System.out.print("Specify path to data: ");
-                String sourcePath = scanner.nextLine();
-                if (Data.checkIfPathNonExists(sourcePath)) {
-                    scanner.close();
-                    throw new FileNotFoundException("Specified file does not exist!");
-                }
+            System.out.print("Where place encrypted data: ");
+            outputPath = scanner.nextLine();
+            if (Data.checkIfPathNonExists(outputPath)) {
+                scanner.close();
+                throw new FileNotFoundException("Specified path does not exist!");
+            }
 
-                System.out.print("Where place encrypted data: ");
-                outputPath = scanner.nextLine();
-                if (Data.checkIfPathNonExists(outputPath)) {
-                    scanner.close();
-                    throw new FileNotFoundException("Specified path does not exist!");
-                }
-
-                encrypt(sourcePath, outputPath);
-                break;
-
-            case ("-d"):
+            encrypt(sourcePath, outputPath);
+        } else {
+            if (args[0].equalsIgnoreCase("-d")) {
                 System.out.print("Specify path to encrypted file: ");
                 String encryptedPath = scanner.nextLine();
                 if (Data.checkIfPathNonExists(encryptedPath)) {
@@ -106,12 +104,9 @@ public class App {
                 }
 
                 decrypt(encryptedPath, keyPath, outputPath);
-                break;
-
-            default:
+            } else {
                 System.out.println("Run with -e arg to encrypt or -d to decrypt!");
-                break;
-            
+            }
         }
 
         scanner.close();
