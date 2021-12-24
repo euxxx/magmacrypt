@@ -3,7 +3,7 @@ package ru.mirea.edu.magmacrypt;
 import ru.mirea.edu.magmacrypt.cipher.Encryptor;
 import ru.mirea.edu.magmacrypt.cipher.Decryptor;
 
-import ru.mirea.edu.magmacrypt.aux.DataProcessing;
+import ru.mirea.edu.magmacrypt.aux.Data;
 import ru.mirea.edu.magmacrypt.aux.KeyGenerator;
 import ru.mirea.edu.magmacrypt.aux.Payload;
 
@@ -20,29 +20,29 @@ public class App {
 
     public static void encrypt(String path, String outputPath) throws IOException, NoSuchAlgorithmException {
         byte[] keySet = KeyGenerator.generateKey();
-        DataProcessing.writeBytesToFileByPath(outputPath + KEY_FILE_OUTPUT_PATH, keySet);
+        Data.writeBytesToFileByPath(outputPath + KEY_FILE_OUTPUT_PATH, keySet);
         byte[] bytes;
 
-        if (DataProcessing.checkIfPathIsFile(path)) {
-            bytes = DataProcessing.readFileBytes(path);
+        if (Data.checkIfPathIsFile(path)) {
+            bytes = Data.readFileBytes(path);
         } else {
-            bytes = DataProcessing.packDirectory(path);
+            bytes = Data.packDirectory(path);
             path = "RESTORED.ZIP";
         }
 
         Payload payload = new Payload(path, bytes);
-        byte[] payloadBytes = DataProcessing.addPadding(DataProcessing.serializeObjectToBytes(payload));
+        byte[] payloadBytes = Data.addPadding(Data.serializeObjectToBytes(payload));
         byte[] enc = new Encryptor(payloadBytes, keySet).perform();
-        DataProcessing.writeBytesToFileByPath(outputPath + OUTPUT_FILE_PATH, enc);
+        Data.writeBytesToFileByPath(outputPath + OUTPUT_FILE_PATH, enc);
     }
 
     public static void decrypt(String encryptedFilePath, String keyFilePath, String outputPath)
             throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
-        byte[] keySet = DataProcessing.readFileBytes(keyFilePath);
-        byte[] enc = DataProcessing.readFileBytes(encryptedFilePath);
+        byte[] keySet = Data.readFileBytes(keyFilePath);
+        byte[] enc = Data.readFileBytes(encryptedFilePath);
         byte[] dec = new Decryptor(enc, keySet).perform();
         byte[] cut = Arrays.copyOfRange(dec, 1, dec.length - dec[0] + 1);
-        Payload pl = DataProcessing.deserializeBytesToObject(cut);
+        Payload pl = Data.deserializeBytesToObject(cut);
         String fileName = pl.getFileName();
 
         if (!fileName.equalsIgnoreCase("RESTORED.ZIP")) {
@@ -50,7 +50,7 @@ public class App {
             fileName = fileName.substring(lastSlashIndex);
         }
 
-        DataProcessing.writeBytesToFileByPath(outputPath + fileName, pl.getBytes());
+        Data.writeBytesToFileByPath(outputPath + fileName, pl.getBytes());
     }
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
@@ -67,14 +67,14 @@ public class App {
                 System.out.print("Specify path to data: ");
                 String sourcePath = scanner.nextLine();
                 // scanner.close();
-                if (DataProcessing.checkIfPathNonExists(sourcePath)) {
+                if (Data.checkIfPathNonExists(sourcePath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified file does not exist!");
                 }
 
                 System.out.print("Where place encrypted data: ");
                 String outputPath = scanner.nextLine();
-                if (DataProcessing.checkIfPathNonExists(outputPath)) {
+                if (Data.checkIfPathNonExists(outputPath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified path does not exist!");
                 }
@@ -84,7 +84,7 @@ public class App {
             case "-d" -> {
                 System.out.print("Specify path to encrypted file: ");
                 String encryptedPath = scanner.nextLine();
-                if (DataProcessing.checkIfPathNonExists(encryptedPath)) {
+                if (Data.checkIfPathNonExists(encryptedPath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified file does not exist!");
                 }
@@ -92,14 +92,14 @@ public class App {
                 System.out.print("Specify path to key file: ");
                 String keyPath = scanner.nextLine();
 
-                if (DataProcessing.checkIfPathNonExists(keyPath)) {
+                if (Data.checkIfPathNonExists(keyPath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified file does not exist!");
                 }
 
                 System.out.print("Where place decrypted data: ");
                 String outputPath = scanner.nextLine();
-                if (DataProcessing.checkIfPathNonExists(outputPath)) {
+                if (Data.checkIfPathNonExists(outputPath)) {
                     scanner.close();
                     throw new FileNotFoundException("Specified path does not exist!");
                 }

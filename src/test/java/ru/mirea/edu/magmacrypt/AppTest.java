@@ -9,7 +9,7 @@ import org.junit.Test;
 import ru.mirea.edu.magmacrypt.aux.KeyGenerator;
 import ru.mirea.edu.magmacrypt.cipher.Decryptor;
 import ru.mirea.edu.magmacrypt.cipher.Encryptor;
-import ru.mirea.edu.magmacrypt.aux.DataProcessing;
+import ru.mirea.edu.magmacrypt.aux.Data;
 
 import static org.junit.Assert.assertTrue;
 
@@ -27,7 +27,7 @@ public class AppTest {
                 -89, 91, 52, -107, -117, -41, 111, 82, 5, 109, -42, 97, 71, -2, 2, -113, -51, 78, -28, 121, 8, 84, 54,
                 -2, -57, -123, -84, 89 };
 
-        byte[] testPayload = DataProcessing.addPadding(testPayloadRaw);
+        byte[] testPayload = Data.addPadding(testPayloadRaw);
 
         byte[] enc = new Encryptor(testPayload, testKey).perform();
         byte[] dec = new Decryptor(enc, testKey).perform();
@@ -46,9 +46,9 @@ public class AppTest {
         encrypt(TEST_DATA_RESOURCES_PATH + "SINGLE_BINARY_FILE.jpeg", TEST_DATA_OUTPUT_PATH);
         decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH);
 
-        byte[] decryptedZipBytes = DataProcessing.readFileBytes(TEST_DATA_OUTPUT_PATH + "SINGLE_BINARY_FILE.jpeg");
+        byte[] decryptedZipBytes = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "SINGLE_BINARY_FILE.jpeg");
 
-        byte[] testPayload = DataProcessing.readFileBytes(TEST_DATA_OUTPUT_PATH + "SINGLE_BINARY_FILE.jpeg");
+        byte[] testPayload = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "SINGLE_BINARY_FILE.jpeg");
 
         boolean fileTestResult = Arrays.equals(decryptedZipBytes, testPayload);;
 
@@ -56,9 +56,9 @@ public class AppTest {
         encrypt(TEST_DATA_RESOURCES_PATH, TEST_DATA_OUTPUT_PATH);
         decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH);
 
-        decryptedZipBytes = DataProcessing.readFileBytes(TEST_DATA_OUTPUT_PATH + "RESTORED.ZIP");
+        decryptedZipBytes = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "RESTORED.ZIP");
 
-        testPayload = DataProcessing.packDirectory(TEST_DATA_RESOURCES_PATH);
+        testPayload = Data.packDirectory(TEST_DATA_RESOURCES_PATH);
 
         boolean dirTestResult = Arrays.equals(decryptedZipBytes, testPayload);
 

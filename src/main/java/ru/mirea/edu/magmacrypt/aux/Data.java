@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class DataProcessing {
+public class Data {
     public static byte[] packDirectory(String path) throws IOException {
 
         ArrayList<String> entries = new ArrayList<String>();
