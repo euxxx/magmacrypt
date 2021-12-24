@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import ru.mirea.edu.magmacrypt.aux.KeyGenerator;
+import ru.mirea.edu.magmacrypt.aux.KeyGen;
 import ru.mirea.edu.magmacrypt.cipher.Decryptor;
 import ru.mirea.edu.magmacrypt.cipher.Encryptor;
 import ru.mirea.edu.magmacrypt.aux.Data;
@@ -19,7 +19,7 @@ import static ru.mirea.edu.magmacrypt.App.encrypt;
 public class AppTest {
     @Test
     public void algorithmTest() throws NoSuchAlgorithmException {
-        final byte[] testKey = KeyGenerator.generateKey();
+        final byte[] testKey = KeyGen.generateKey();
 
         byte[] testPayloadRaw = { 92, 93, -51, 14, -59, -46, 4, 116, 19, -107, -90, -59, 23, 38, 97, 1, 50, 120, 49,
                 -83,

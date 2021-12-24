@@ -4,7 +4,7 @@ import ru.mirea.edu.magmacrypt.cipher.Encryptor;
 import ru.mirea.edu.magmacrypt.cipher.Decryptor;
 
 import ru.mirea.edu.magmacrypt.aux.Data;
-import ru.mirea.edu.magmacrypt.aux.KeyGenerator;
+import ru.mirea.edu.magmacrypt.aux.KeyGen;
 import ru.mirea.edu.magmacrypt.aux.Payload;
 
 import java.io.FileNotFoundException;
@@ -19,7 +19,7 @@ public class App {
     public final static String KEY_FILE_OUTPUT_PATH = "KEY";
 
     public static void encrypt(String path, String outputPath) throws IOException, NoSuchAlgorithmException {
-        byte[] keySet = KeyGenerator.generateKey();
+        byte[] keySet = KeyGen.generateKey();
         Data.writeBytesToFileByPath(outputPath + KEY_FILE_OUTPUT_PATH, keySet);
         byte[] bytes;
 

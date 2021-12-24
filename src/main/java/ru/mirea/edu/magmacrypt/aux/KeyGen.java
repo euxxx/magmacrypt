@@ -3,7 +3,7 @@ package ru.mirea.edu.magmacrypt.aux;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-public class KeyGenerator {
+public class KeyGen {
     public static byte[] generateKey() throws NoSuchAlgorithmException {
         byte[] output = new byte[64];
 
