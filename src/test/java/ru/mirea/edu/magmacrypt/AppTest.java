@@ -62,6 +62,6 @@ public class AppTest {
 
         boolean dirTestResult = Arrays.equals(decryptedZipBytes, testPayload);
 
-        assertTrue(dirTestResult && fileTestResult);
+        assertTrue("General application check pass: ", dirTestResult && fileTestResult);
     }
 }

@@ -17,19 +17,19 @@ public class App {
     public final static String OUTPUT_FILE_PATH = "ENCRYPTED";
     public final static String KEY_FILE_OUTPUT_PATH = "KEY";
 
-    public static void encrypt(String path, String outputPath) throws IOException, NoSuchAlgorithmException {
+    public static void encrypt(String inputPath, String outputPath) throws IOException, NoSuchAlgorithmException {
         byte[] keySet = KeyGen.generateKey();
         Data.writeBytesToFileByPath(outputPath + KEY_FILE_OUTPUT_PATH, keySet);
         byte[] bytes;
 
-        if (Data.checkIfPathIsFile(path)) {
-            bytes = Data.readFileBytes(path);
+        if (Data.checkIfPathIsFile(inputPath)) {
+            bytes = Data.readFileBytes(inputPath);
         } else {
-            bytes = Data.packDirectory(path);
-            path = "RESTORED.ZIP";
+            bytes = Data.packDirectory(inputPath);
+            inputPath = "RESTORED.ZIP";
         }
 
-        Payload payload = new Payload(path, bytes);
+        Payload payload = new Payload(inputPath, bytes);
         byte[] payloadBytes = Data.addPadding(Data.serializeObjectToBytes(payload));
         byte[] enc = new Encryptor(payloadBytes, keySet).perform();
         Data.writeBytesToFileByPath(outputPath + OUTPUT_FILE_PATH, enc);
