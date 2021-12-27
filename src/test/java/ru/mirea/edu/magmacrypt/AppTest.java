@@ -19,7 +19,7 @@ import static ru.mirea.edu.magmacrypt.App.encrypt;
 public class AppTest {
     @Test
     public void algorithmTest() throws NoSuchAlgorithmException {
-        final byte[] testKey = KeyGen.generateKey();
+        final byte[] testKey = KeyGen.generateRandomBytesSequence(32);
 
         byte[] testPayloadRaw = { 92, 93, -51, 14, -59, -46, 4, 116, 19, -107, -90, -59, 23, 38, 97, 1, 50, 120, 49,
                 -83,

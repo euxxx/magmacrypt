@@ -203,8 +203,284 @@ OpenJDK 64-Bit Server VM 18.9 (build 11.0.13+8, mixed mode, sharing)
     }
    ```
 
+Содержимое пакета `auxiliary` позволяет обеспечить обработку различных способов взаимодействия с данными при проведении процедур шифрования и дешифрования:
+1. Класс `Payload` позволяет обернуть и сериализовать в массив байтов байты исходной полезной нагрузки и имя оригинального файла:
+   ```Java
+    public class Payload implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private final String fileName;
+        private final byte[] bytes;
+
+        public Payload(String fileName, byte[] bytes) {
+            this.fileName = fileName;
+            this.bytes = bytes;
+        }
+
+        public Payload() {
+            this.fileName = null;
+            this.bytes = null;
+        }
+
+        public String getFileName() {
+            return this.fileName;
+        }
+
+        public byte[] getBytes() {
+            return this.bytes;
+        }
+    }
+   ```
+2. Класс `KeyGen` содержит статический метод `generateKey` для генерации случайного 256-битного ключа;
+3. Класс `Data` предоставляет статические методы для упрощения взаимодействия с файлами:
+   1. `packDirectory` - "упаковка" каталог в сжатый zip-архив
+   ```Java
+    public static byte[] packDirectory(String path) throws IOException {
+
+        ArrayList<String> entries = new ArrayList<String>();
+
+        Files.walk(Paths.get(path))
+                .filter(Files::isRegularFile)
+                .forEach(_path -> entries.add(_path.toString()));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ZipOutputStream zip = new ZipOutputStream(out);
+
+        for (String entryPath : entries) {
+            zip.putNextEntry(new ZipEntry(entryPath));
+
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(new File(entryPath)));
+            byte[] bytesInput = new byte[4096];
+            int readUnit = 0;
+
+            while ((readUnit = bufferedInputStream.read(bytesInput)) != -1) {
+                zip.write(bytesInput, 0, readUnit);
+            }
+
+            zip.closeEntry();
+            bufferedInputStream.close();
+        }
+
+        zip.close();
+        byte[] output = out.toByteArray();
+        out.close();
+
+        return output; 
+    }
+   ```
+   2. `readFileBytes` - считывает указанный файл в массив байтов
+   ```Java
+    public static byte[] readFileBytes(String path) throws IOException {
+        return Files.readAllBytes(new File(path).toPath());
+    }
+   ```
+   3. `addPadding` - добавляет пустые байты для дополнения последнего блока шифруемой информации
+   ```Java
+    public static byte[] addPadding(byte[] source) {
+        final int paddingRate = 8 - (source.length % 8);
+
+        byte[] output = new byte[source.length + paddingRate];
+
+        output[0] = (byte) paddingRate;
+
+        for (int i = 0; i < source.length; i++) {
+            output[i + 1] = source[i];
+        }
+
+        if (paddingRate > 2) {
+            output[source.length + 1] = 1;
+        }
+
+        return output;
+    }
+   ```
+   4. `writeBytesToFileByPath` - записывает байты данных в файл по указанному пути
+   ```Java
+    public static void writeBytesToFileByPath(String path, byte[] payload) throws IOException {
+        Path _path = Paths.get(path);
+        Files.write(_path, payload);
+    }
+   ```
+   5. `checkIfPathIsFile` - проверяет является указанный путь файлом или папкой
+   ```Java
+    public static boolean checkIfPathIsFile(String path) {
+        File file = new File(path);
+
+        return file.isFile();
+    }
+   ```
+   6. `checkIfPathNonExists` - проверяет существование указанного ресурса
+   ```Java
+    public static boolean checkIfPathNonExists(String path) {
+        File file = new File(path);
+
+        return Files.notExists(file.toPath());
+    }
+   ```
+
+   7. `serializeObjectToBytes` - сериализует объект в массив байтов
+   ```Java
+    public static byte[] serializeObjectToBytes(Payload obj) throws IOException {
+        ByteArrayOutputStream boas = new ByteArrayOutputStream();
+        ObjectOutputStream ois = new ObjectOutputStream(boas);
+        ois.writeObject(obj);
+        ois.flush();
+        ois.close();
+        return boas.toByteArray();
+    }
+   ```
+   8. `deserializeBytesToObject` - восстанавливает объект из массива байтов
+   ```Java
+    public static Payload deserializeBytesToObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        InputStream is = new ByteArrayInputStream(bytes);
+        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+        Payload output = (Payload) ois.readObject();
+        ois.close();
+        is.close();
+        return output;
+    }
+   ```
+
 <div style="page-break-after: always;"></div>
 
 ### 2.3. Пример запуска
 
+При сборке в рамках unit-тестирования выполняются проверки работоспособности отдельно криптоалгоритма, шифрование одного файла и каталога:
+
+```Java
+public class AppTest {
+    @Test
+    public void algorithmTest() throws NoSuchAlgorithmException {
+        final byte[] testKey = KeyGen.generateKey();
+
+        byte[] testPayloadRaw = { 92, 93, -51, 14, -59, -46, 4, 116, 19, -107, -90, -59, 23, 38, 97, 1, 50, 120, 49,
+                -83,
+                106, -67, 75, 70, 25, -54, -124, 73, -29, 31, 69, 74, -102, -47, -27, -35, -60, 50, 86, -38, -125, -64,
+                -89, 91, 52, -107, -117, -41, 111, 82, 5, 109, -42, 97, 71, -2, 2, -113, -51, 78, -28, 121, 8, 84, 54,
+                -2, -57, -123, -84, 89 };
+
+        byte[] testPayload = Data.addPadding(testPayloadRaw);
+
+        byte[] enc = new Encryptor(testPayload, testKey).perform();
+        byte[] dec = new Decryptor(enc, testKey).perform();
+
+        byte[] cut = Arrays.copyOfRange(dec, 1, dec.length - dec[0] + 1);
+        assertTrue("Algorithm work check pass: ", Arrays.equals(testPayloadRaw, cut));
+    }
+
+    @Test
+    public void generalTest() throws NoSuchAlgorithmException, IOException, ClassNotFoundException {
+
+        final String TEST_DATA_RESOURCES_PATH = "./TEST_DATA/RESOURCES/";
+        final String TEST_DATA_OUTPUT_PATH = "./TEST_DATA/OUTPUT/";
+
+        // ? - SINGLE FILE TEST
+        encrypt(TEST_DATA_RESOURCES_PATH + "SINGLE_BINARY_FILE.jpeg", TEST_DATA_OUTPUT_PATH);
+        decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH);
+
+        byte[] decryptedZipBytes = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "SINGLE_BINARY_FILE.jpeg");
+
+        byte[] testPayload = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "SINGLE_BINARY_FILE.jpeg");
+
+        boolean fileTestResult = Arrays.equals(decryptedZipBytes, testPayload);;
+
+        // ? - DIRECTORY TEST
+        encrypt(TEST_DATA_RESOURCES_PATH, TEST_DATA_OUTPUT_PATH);
+        decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH);
+
+        decryptedZipBytes = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "RESTORED.ZIP");
+
+        testPayload = Data.packDirectory(TEST_DATA_RESOURCES_PATH);
+
+        boolean dirTestResult = Arrays.equals(decryptedZipBytes, testPayload);
+
+        assertTrue("General application check pass: ", dirTestResult && fileTestResult);
+    }
+}
+```
+
+При ручном запуске данные сценарии могут быть воспроизведены следующим образом:
+1. Шифрование единичного файла
+
+```console
+$ java -jar ./target/magmacrypt-1.0.jar
+Specify path to data: ./TEST_DATA/RESOURCES/SINGLE_SOURCE_CODE.java
+Where place encrypted data: ./TEST_DATA/OUTPUT/
+
+$ tree TEST_DATA
+TEST_DATA
+├── OUTPUT
+│   ├── DO_NOT_DELETE
+│   ├── ENCRYPTED
+│   └── KEY
+└── RESOURCES
+    ├── SINGLE_BINARY_FILE.jpeg
+    └── SINGLE_SOURCE_CODE.java
+
+2 directories, 5 files
+
+$ java -jar ./target/magmacrypt-1.0.jar -d
+Specify path to encrypted file: ./TEST_DATA/OUTPUT/ENCRYPTED
+Specify path to key file: ./TEST_DATA/OUTPUT/KEY
+Where place decrypted data: ./TEST_DATA/OUTPUT/
+
+TEST_DATA
+├── OUTPUT
+│   ├── DO_NOT_DELETE
+│   ├── ENCRYPTED
+│   ├── KEY
+│   └── SINGLE_SOURCE_CODE.java
+└── RESOURCES
+    ├── SINGLE_BINARY_FILE.jpeg
+    └── SINGLE_SOURCE_CODE.java
+
+2 directories, 6 files
+
+$ cat TEST_DATA/RESOURCES/SINGLE_SOURCE_CODE.java && echo '\n' && cat TEST_DATA/OUTPUT/SINGLE_SOURCE_CODE.java
+public class MyClass {
+  int x = 5;
+
+  public static void main(String[] args) {
+    MyClass myObj1 = new MyClass();  // Object 1
+    MyClass myObj2 = new MyClass();  // Object 2
+    System.out.println(myObj1.x);
+    System.out.println(myObj2.x);
+  }
+}
+
+public class MyClass {
+  int x = 5;
+
+  public static void main(String[] args) {
+    MyClass myObj1 = new MyClass();  // Object 1
+    MyClass myObj2 = new MyClass();  // Object 2
+    System.out.println(myObj1.x);
+    System.out.println(myObj2.x);
+}
+```
+
+2. Шифрование каталога
+```console
+$ java -jar ./target/magmacrypt-1.0.jar
+Specify path to data: ./TEST_DATA/RESOURCES/
+Where place encrypted data: ./TEST_DATA/OUTPUT/
+
+$ java -jar ./target/magmacrypt-1.0.jar -d
+Specify path to encrypted file: ./TEST_DATA/OUTPUT/ENCRYPTED
+Specify path to key file: ./TEST_DATA/OUTPUT/KEY
+Where place decrypted data: ./TEST_DATA/OUTPUT/
+
+$ unzip -l TEST_DATA/OUTPUT/RESTORED.ZIP
+Archive:  TEST_DATA/OUTPUT/RESTORED.ZIP
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+   334137  2021-12-25 05:13   ./TEST_DATA/RESOURCES/SINGLE_BINARY_FILE.jpeg
+      251  2021-12-25 05:13   ./TEST_DATA/RESOURCES/SINGLE_SOURCE_CODE.java
+---------                     -------
+   334388                     2 files
+```
+
 <div style="page-break-after: always;"></div>
+
+## Заключение
+
+В данной работе я реализовала алгоритм шифрования ГОСТ 28147−89, а также проверила результат работы на различных типах полезной нагрузки. Шифр является устойчивым к атакам путём полного перебора. 

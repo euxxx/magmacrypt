@@ -18,7 +18,7 @@ public class App {
     public final static String KEY_FILE_OUTPUT_PATH = "KEY";
 
     public static void encrypt(String inputPath, String outputPath) throws IOException, NoSuchAlgorithmException {
-        byte[] keySet = KeyGen.generateKey();
+        byte[] keySet = KeyGen.generateRandomBytesSequence(32);
         Data.writeBytesToFileByPath(outputPath + KEY_FILE_OUTPUT_PATH, keySet);
         byte[] bytes;
 
