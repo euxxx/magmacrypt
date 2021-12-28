@@ -1,1 +1,1 @@
-mvn clean && mvn package -f "./pom.xml" && cd ./TEST_DATA/OUTPUT/ && rm -rf ENCRYPTED KEY RESTORED.ZIP SINGLE_BINARY_FILE.jpeg
+mvn clean && mvn package -f "./pom.xml" && cd ./TEST_DATA/OUTPUT/ && rm -rf ENCRYPTED KEY IV RESTORED.ZIP SINGLE_BINARY_FILE.jpeg
