@@ -5,6 +5,10 @@ import java.util.Arrays;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Scanner;
+
+import ru.mirea.edu.magmacrypt.cipher.CBCDecryptor;
+import ru.mirea.edu.magmacrypt.cipher.CBCEncryptor;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -316,7 +320,7 @@ public class Staging {
 
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        Scanner in = new Scanner(System.in);
+        /* Scanner in = new Scanner(System.in);
         System.out.println("Для расшифровки файла введите - D, для шифрования файла введите - E ");
         String mode = in.nextLine();
         if (mode.equals("E")) {
@@ -346,6 +350,26 @@ public class Staging {
             DecryptFile(Plaintext, Enc_text, r_IV, key_mas);
         } else {
             System.out.println("Wrong mode");
+        } */
+
+        byte[] testSample = {107, 21, 1, 19, -119, 39, 116, 91, 11, 106, 35, 110, -83, 78, -98, 61, 60, 114, -100, -80, -33, 34, 109, -28, 73, -80, 65, -126, -2, 19, -19, 117, 121, -60, -51, -44, 93, 85, 91, 107, -59, -60, 7, -23, -89, 125, 66, 116, -86, -91, 41, 20, 3, 97, 15, 42, 45, 12, -108, 100, -58, -83, 125, 103, 60, 47, -77, 79, -15, -29, -61, 91, -68, -14, -100, 119, 32, -111, -14, 88, 52, -126, -14, 29, -126, -21, -8, -81, 44, -67, 5, 100, 117, -99, 15, -86};
+
+        byte[] testKey = {45, 99, 96, 85, -40, -98, 21, -56, -32, -18, -16, -64, -128, -11, -22, 25, 56, -118, -16, -42, 122, 5, 39, 77, 38, 10, -43, 78, 2, 50, 5, 94};
+
+        byte[] testInitializationVector = {-21, 28, 100, 111, -39, 53, -11, -94};
+
+        CBCEncryptor enc = new CBCEncryptor(testSample, testInitializationVector, testKey);
+
+        byte[] testEnc = enc.perform();
+
+        CBCDecryptor dec = new CBCDecryptor(testEnc, testInitializationVector, testKey);
+
+        byte[] testDec = dec.perform();
+
+        System.out.println(Arrays.toString(testEnc) + "\n" + Arrays.toString(testDec));
+
+        for (int i = 0; i < testDec.length; i++) {
+            System.out.println(testSample[i] == testDec[i]);
         }
     }
 }

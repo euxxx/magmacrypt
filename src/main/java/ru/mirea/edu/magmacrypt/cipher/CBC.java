@@ -3,11 +3,9 @@ package ru.mirea.edu.magmacrypt.cipher;
 import java.util.Arrays;
 
 public abstract class CBC {
-    private final byte[] INPUT;
-    private final byte[] INITIALIZATION_VECTOR;
-    private final byte[] KEY;
-
-    public abstract byte[] perform();
+    private byte[] input;
+    private byte[] initializationVector;
+    private final byte[][] KEY_SET;
 
     private final byte[][] SUBSTITUTION_BOX = {
             { 0x4, 0xA, 0x9, 0x2, 0xD, 0x8, 0x0, 0xE, 0x6, 0xB, 0x1, 0xC, 0x7, 0xF, 0x5, 0x3 },
@@ -21,9 +19,9 @@ public abstract class CBC {
     };
 
     public CBC(byte[] input, byte[] initializationVector, byte[] key) {
-        this.INPUT = input;
-        this.INITIALIZATION_VECTOR = initializationVector;
-        this.KEY = key;
+        this.input = input;
+        this.initializationVector = initializationVector;
+        this.KEY_SET = buildRoundKeySet(key);
     }
 
     private byte[][] buildRoundKeySet(byte[] sourceKey) {
@@ -49,7 +47,7 @@ public abstract class CBC {
         return output;
     }
 
-    private byte[] xor2ByteArrays(byte[] a, byte[] b, byte outputLength) {
+    private byte[] xor2ByteArrays(byte[] a, byte[] b, int outputLength) {
         byte[] output = new byte[outputLength];
 
         for (int i = 0; i < outputLength; i++) {
@@ -78,8 +76,8 @@ public abstract class CBC {
         byte a, b;
 
         for (int i = 0; i < 4; i++) {
-            b = (byte) ((block[i] & 0xFF) >> 4);
-            a = (byte) (block[i] & 0xFF);
+            b = (byte) ((block[i] & 0xF0) >> 4);
+            a = (byte) (block[i] & 0x0F);
 
             b = SUBSTITUTION_BOX[2 * i][b];
             a = SUBSTITUTION_BOX[2 * i + 1][a];
@@ -90,11 +88,92 @@ public abstract class CBC {
         return output;
     }
 
-    private byte[] performRound(byte[] input, byte[] roundKey, boolean isLast) {
+    private byte[] prepareRound(byte[] block, byte[] roundKey) {
+        byte[] output = new byte[4];
+
+        byte[] substituted = substituteUsingSBox(addition2ByteArraysMod32(block, roundKey));
+
+        int temp = 0;
+
+        for (int i = 0; i < 4; i++) {
+            temp = (i == 0) ? substituted[0] : (temp << 8) + substituted[i];
+        }
+
+        temp = (temp << 11) | (temp >> 21);
+
+        for (int j = 0; j < 4; j++) {
+            output[3 - j] = (j == 0) ? (byte) temp : (byte) (temp >> (8 * j));
+        }
+
+        return output;
+    }
+
+    private byte[] performRound(byte[] originalBlock, byte[] roundKey, boolean isLast) {
         byte[] output = new byte[8];
 
         byte[] leftBlock = new byte[4];
         byte[] rightBlock = new byte[4];
+
+        for (int i = 0; i < 4; i++) {
+            rightBlock[i] = !isLast ? originalBlock[i + 4] : originalBlock[i];
+            leftBlock[i] = !isLast ? originalBlock[i] : originalBlock[i + 4];
+        }
+
+        byte[] round = xor2ByteArrays(!isLast ? leftBlock : rightBlock, prepareRound(roundKey, !isLast ? rightBlock : leftBlock), 4);
+
+        for (int j = 0; j < 4; j++) {
+            if (!isLast) {
+                leftBlock[j] = rightBlock[j];
+            }
+            rightBlock[j] = round[j];
+        }
+
+        for (int k = 0; k < 4; k++) {
+            output[k] = !isLast ? leftBlock[k] : rightBlock[k];
+            output[k + 4] = !isLast ? rightBlock[k] : leftBlock[k];
+        }
+
+        return output;
+    }
+
+    private byte[] encryptBlock(byte[] block) {
+        block = xor2ByteArrays(block, initializationVector, 8);
+
+        block = performRound(block, KEY_SET[0], false);
+
+        for (int i = 1; i < 31; i++) {
+            block = performRound(block, KEY_SET[i], false);
+        }
+
+        block = performRound(block, KEY_SET[31], true);
+
+        return block;
+    }
+
+    private byte[] decryptBlock(byte[] block) {
+        block = performRound(block, KEY_SET[31], false);
+
+        for (int i = 30; i > 0; i--) {
+            block = performRound(block, KEY_SET[i], false);
+        }
+
+        block = performRound(block, KEY_SET[0], true);
+
+        return xor2ByteArrays(block, initializationVector, 8);
+    }
+
+    protected byte[] perform(boolean mode) {
+        byte[] block, temp, output;
+
+        output = new byte[this.input.length];
+
+        for (int i = 0; i < input.length; i += 8) {
+            block = Arrays.copyOfRange(input, i, i + 8);
+            temp = !mode ? block : null;
+            block = mode ? encryptBlock(block) : decryptBlock(block);
+            System.arraycopy(block, 0, output, i, 8);
+            this.initializationVector = mode ? block : temp;
+        }
 
         return output;
     }

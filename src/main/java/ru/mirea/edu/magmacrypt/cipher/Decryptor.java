@@ -1,5 +1,6 @@
 package ru.mirea.edu.magmacrypt.cipher;
 
+@Deprecated
 public class Decryptor extends Algorithm {
     private final byte[] input;
     private final byte[] keySet;

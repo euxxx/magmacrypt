@@ -2,6 +2,7 @@ package ru.mirea.edu.magmacrypt.cipher;
 
 import java.util.Arrays;
 
+@Deprecated
 public abstract class Algorithm {
     // TLS_GOSTR341112_256_WITH_28147_CNT_IMIT
     private final byte[][] sBox = {
