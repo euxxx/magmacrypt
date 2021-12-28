@@ -10,8 +10,6 @@ import ru.mirea.edu.magmacrypt.auxiliary.Data;
 import ru.mirea.edu.magmacrypt.auxiliary.KeyGen;
 import ru.mirea.edu.magmacrypt.cipher.CBCDecryptor;
 import ru.mirea.edu.magmacrypt.cipher.CBCEncryptor;
-import ru.mirea.edu.magmacrypt.cipher.Decryptor;
-import ru.mirea.edu.magmacrypt.cipher.Encryptor;
 
 import static org.junit.Assert.assertTrue;
 
@@ -43,7 +41,7 @@ public class AppTest {
 
         // ? - SINGLE FILE TEST
         encrypt(TEST_DATA_RESOURCES_PATH + "SINGLE_BINARY_FILE.jpeg", TEST_DATA_OUTPUT_PATH);
-        //decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH);
+        decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH + "IV", TEST_DATA_OUTPUT_PATH);
 
         byte[] decryptedZipBytes = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "SINGLE_BINARY_FILE.jpeg");
 
@@ -53,7 +51,7 @@ public class AppTest {
 
         // ? - DIRECTORY TEST
         encrypt(TEST_DATA_RESOURCES_PATH, TEST_DATA_OUTPUT_PATH);
-        //decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH);
+        decrypt(TEST_DATA_OUTPUT_PATH + "ENCRYPTED", TEST_DATA_OUTPUT_PATH + "KEY", TEST_DATA_OUTPUT_PATH + "IV", TEST_DATA_OUTPUT_PATH);
 
         decryptedZipBytes = Data.readFileBytes(TEST_DATA_OUTPUT_PATH + "RESTORED.ZIP");
 
